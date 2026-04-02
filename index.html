@@ -1,646 +1,74 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculadora de Rentabilidad · Mayba</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --verde: #1D9E75;
-    --verde-dark: #0F6E56;
-    --verde-light: #E1F5EE;
-    --amber: #BA7517;
-    --amber-light: #FAEEDA;
-    --rojo: #E24B4A;
-    --rojo-light: #FCEBEB;
-    --bg: #F7F6F2;
-    --bg-card: #FFFFFF;
-    --text: #1a1a18;
-    --text-muted: #6b6b66;
-    --border: rgba(0,0,0,0.08);
-    --radius: 14px;
-    --radius-sm: 8px;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 0 0 60px;
-  }
-
-  header {
-    background: var(--bg-card);
-    border-bottom: 1px solid var(--border);
-    padding: 18px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-
-  .logo {
-    font-family: 'DM Serif Display', serif;
-    font-size: 22px;
-    color: var(--text);
-    letter-spacing: -0.3px;
-  }
-
-  .logo span { color: var(--verde); }
-
-  .back-link {
-    font-size: 13px;
-    color: var(--text-muted);
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: color 0.15s;
-  }
-  .back-link:hover { color: var(--verde); }
-
-  .hero {
-    background: linear-gradient(135deg, #0F6E56 0%, #1D9E75 60%, #5DCAA5 100%);
-    padding: 48px 32px 56px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .hero::before {
-    content: '';
-    position: absolute;
-    top: -40px; right: -40px;
-    width: 200px; height: 200px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.06);
-  }
-  .hero::after {
-    content: '';
-    position: absolute;
-    bottom: -60px; left: -20px;
-    width: 280px; height: 280px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.04);
-  }
-
-  .hero h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: clamp(26px, 5vw, 38px);
-    font-weight: 400;
-    color: #fff;
-    margin-bottom: 10px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .hero p {
-    font-size: 15px;
-    color: rgba(255,255,255,0.75);
-    max-width: 480px;
-    margin: 0 auto;
-    line-height: 1.6;
-    position: relative;
-    z-index: 1;
-  }
-
-  .container {
-    max-width: 780px;
-    margin: -28px auto 0;
-    padding: 0 20px;
-    position: relative;
-    z-index: 2;
-  }
-
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-
-  .metric {
-    background: var(--bg-card);
-    border-radius: var(--radius);
-    padding: 16px;
-    border: 1px solid var(--border);
-    transition: all 0.3s;
-  }
-
-  .metric .mlabel {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 6px;
-  }
-
-  .metric .mval {
-    font-family: 'DM Serif Display', serif;
-    font-size: 24px;
-    color: var(--text);
-    line-height: 1;
-  }
-
-  .metric.good { border-top: 3px solid var(--verde); }
-  .metric.good .mval { color: var(--verde-dark); }
-  .metric.warn { border-top: 3px solid var(--amber); }
-  .metric.warn .mval { color: var(--amber); }
-  .metric.bad { border-top: 3px solid var(--rojo); }
-  .metric.bad .mval { color: var(--rojo); }
-
-  .card {
-    background: var(--bg-card);
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    padding: 22px 24px;
-    margin-bottom: 14px;
-  }
-
-  .card-title {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    margin-bottom: 18px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .card-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  .row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 14px;
-  }
-  .row:last-child { margin-bottom: 0; }
-
-  .row label {
-    font-size: 13px;
-    color: var(--text-muted);
-    min-width: 180px;
-    flex-shrink: 0;
-    line-height: 1.3;
-  }
-
-  .row label small {
-    display: block;
-    font-size: 11px;
-    color: #aaa;
-    margin-top: 1px;
-  }
-
-  input[type=range] {
-    flex: 1;
-    height: 4px;
-    -webkit-appearance: none;
-    appearance: none;
-    background: #e0ede8;
-    border-radius: 2px;
-    outline: none;
-    cursor: pointer;
-  }
-
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--verde);
-    border: 2px solid #fff;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-    cursor: pointer;
-  }
-
-  input[type=range]::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--verde);
-    border: 2px solid #fff;
-    cursor: pointer;
-  }
-
-  .val-display {
-    font-size: 13px;
-    font-weight: 500;
-    min-width: 88px;
-    text-align: right;
-    color: var(--text);
-    background: var(--bg);
-    border-radius: var(--radius-sm);
-    padding: 4px 8px;
-  }
-
-  input[type=number] {
-    width: 100px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 6px 10px;
-    font-size: 13px;
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    text-align: right;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-  input[type=number]:focus { border-color: var(--verde); }
-
-  .fixed-tag {
-    font-size: 11px;
-    color: var(--text-muted);
-    background: var(--bg);
-    padding: 3px 8px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    white-space: nowrap;
-  }
-
-  .divider {
-    height: 1px;
-    background: var(--border);
-    margin: 14px 0;
-  }
-
-  .bar-card {
-    background: var(--bg-card);
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    padding: 22px 24px;
-    margin-bottom: 14px;
-  }
-
-  .bar-label {
-    font-size: 13px;
-    color: var(--text-muted);
-    margin-bottom: 10px;
-    font-weight: 500;
-  }
-
-  .bar-track {
-    height: 14px;
-    background: #eee;
-    border-radius: 7px;
-    overflow: hidden;
-    display: flex;
-  }
-
-  .bar-seg {
-    height: 100%;
-    transition: width 0.4s ease;
-  }
-
-  .bar-legend {
-    display: flex;
-    gap: 18px;
-    margin-top: 10px;
-    flex-wrap: wrap;
-  }
-
-  .leg-item {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-
-  .leg-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .insight {
-    border-radius: var(--radius);
-    padding: 14px 18px;
-    font-size: 13px;
-    line-height: 1.6;
-    border-left: 4px solid var(--verde);
-    background: var(--verde-light);
-    color: var(--verde-dark);
-    margin-bottom: 14px;
-    transition: all 0.3s;
-  }
-  .insight.warn { border-color: var(--amber); background: var(--amber-light); color: var(--amber); }
-  .insight.bad { border-color: var(--rojo); background: var(--rojo-light); color: var(--rojo); }
-
-  .cta-card {
-    background: linear-gradient(135deg, #0F6E56, #1D9E75);
-    border-radius: var(--radius);
-    padding: 28px 28px;
-    text-align: center;
-    margin-top: 20px;
-  }
-
-  .cta-card h3 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 22px;
-    font-weight: 400;
-    color: #fff;
-    margin-bottom: 8px;
-  }
-
-  .cta-card p {
-    font-size: 14px;
-    color: rgba(255,255,255,0.75);
-    margin-bottom: 20px;
-    max-width: 400px;
-    margin-left: auto;
-    margin-right: auto;
-    line-height: 1.6;
-  }
-
-  .cta-btn {
-    display: inline-block;
-    background: #fff;
-    color: var(--verde-dark);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    padding: 12px 28px;
-    border-radius: 100px;
-    text-decoration: none;
-    transition: all 0.15s;
-    border: none;
-    cursor: pointer;
-  }
-  .cta-btn:hover { background: #f0fdf8; transform: translateY(-1px); }
-
-  footer {
-    text-align: center;
-    padding: 32px 20px 0;
-    font-size: 12px;
-    color: var(--text-muted);
-  }
-
-  @media (max-width: 600px) {
-    header { padding: 14px 18px; }
-    .hero { padding: 36px 20px 48px; }
-    .container { padding: 0 14px; }
-    .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    .card { padding: 16px 16px; }
-    .row { flex-wrap: wrap; gap: 8px; }
-    .row label { min-width: 100%; margin-bottom: 2px; }
-    .val-display { margin-left: auto; }
-    input[type=range] { min-width: 0; }
-  }
-</style>
-</head>
-<body>
-
-<header>
-  <div class="logo">mayba<span>.</span></div>
-  <a class="back-link" href="https://mayba.es">
-    ← Volver a la web
-  </a>
-</header>
-
-<div class="hero">
-  <h1>Calculadora de rentabilidad del alquiler</h1>
-  <p>Analiza tu inversión inmobiliaria en Barcelona: rentabilidad bruta, neta, cashflow y ROCE con o sin hipoteca.</p>
-</div>
-
-<div class="container">
-
-  <div class="metrics-grid">
-    <div class="metric neutral" id="m-bruta">
-      <div class="mlabel">Rentabilidad bruta</div>
-      <div class="mval" id="v-bruta">—</div>
-    </div>
-    <div class="metric neutral" id="m-neta">
-      <div class="mlabel">Rentabilidad neta</div>
-      <div class="mval" id="v-neta">—</div>
-    </div>
-    <div class="metric neutral" id="m-cash">
-      <div class="mlabel">Cashflow mensual</div>
-      <div class="mval" id="v-cash">—</div>
-    </div>
-    <div class="metric neutral" id="m-roce">
-      <div class="mlabel">ROCE</div>
-      <div class="mval" id="v-roce">—</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Datos de la compra</div>
-    <div class="row">
-      <label>Precio de compra</label>
-      <input type="range" id="precio" min="80000" max="900000" step="5000" value="250000">
-      <span class="val-display" id="v-precio">250.000 €</span>
-    </div>
-    <div class="row">
-      <label>Notaría + ITP / IVA</label>
-      <input type="range" id="gastos" min="5000" max="80000" step="500" value="25000">
-      <span class="val-display" id="v-gastos">25.000 €</span>
-    </div>
-    <div class="row">
-      <label>Reforma / mobiliario</label>
-      <input type="range" id="reforma" min="0" max="100000" step="1000" value="0">
-      <span class="val-display" id="v-reforma">0 €</span>
-    </div>
-    <div class="divider"></div>
-    <div class="row">
-      <label>Otros gastos compra <small>broker, cláusulas, gestoría…</small></label>
-      <input type="number" id="otrosgastos" min="0" step="500" value="0" placeholder="0">
-      <span class="fixed-tag">importe fijo</span>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Ingresos del alquiler</div>
-    <div class="row">
-      <label>Alquiler mensual</label>
-      <input type="range" id="renta" min="400" max="4000" step="50" value="1200">
-      <span class="val-display" id="v-renta">1.200 €</span>
-    </div>
-    <div class="row">
-      <label>Plaza parking / trastero</label>
-      <input type="range" id="parking" min="0" max="300" step="10" value="0">
-      <span class="val-display" id="v-parking">0 €</span>
-    </div>
-    <div class="divider"></div>
-    <div class="row">
-      <label>Otros ingresos mensuales <small>señales, servicios adicionales…</small></label>
-      <input type="number" id="otroing" min="0" step="10" value="0" placeholder="0">
-      <span class="fixed-tag">importe fijo</span>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Gastos del alquiler</div>
-    <div class="row">
-      <label>IBI anual</label>
-      <input type="range" id="ibi" min="200" max="3000" step="50" value="600">
-      <span class="val-display" id="v-ibi">600 €</span>
-    </div>
-    <div class="row">
-      <label>Comunidad mensual</label>
-      <input type="range" id="comunidad" min="0" max="500" step="10" value="80">
-      <span class="val-display" id="v-comunidad">80 €</span>
-    </div>
-    <div class="row">
-      <label>Seguro anual</label>
-      <input type="range" id="seguro" min="0" max="1500" step="50" value="300">
-      <span class="val-display" id="v-seguro">300 €</span>
-    </div>
-    <div class="divider"></div>
-    <div class="row">
-      <label>Otros gastos mensuales <small>gestoría, suministros, etc.</small></label>
-      <input type="number" id="otrogasto" min="0" step="10" value="0" placeholder="0">
-      <span class="fixed-tag">importe fijo</span>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Hipoteca (opcional)</div>
-    <div class="row">
-      <label>Financiación</label>
-      <input type="range" id="financ" min="0" max="80" step="5" value="0">
-      <span class="val-display" id="v-financ">0%</span>
-    </div>
-    <div class="row">
-      <label>Tipo de interés</label>
-      <input type="range" id="tipo" min="1" max="7" step="0.1" value="3">
-      <span class="val-display" id="v-tipo">3,0%</span>
-    </div>
-    <div class="row">
-      <label>Plazo</label>
-      <input type="range" id="plazo" min="5" max="40" step="1" value="25">
-      <span class="val-display" id="v-plazo">25 años</span>
-    </div>
-  </div>
-
-  <div class="bar-card">
-    <div class="bar-label">Distribución de los ingresos anuales</div>
-    <div class="bar-track">
-      <div class="bar-seg" id="bar-gastos" style="background:#E24B4A"></div>
-      <div class="bar-seg" id="bar-hipo" style="background:#BA7517"></div>
-      <div class="bar-seg" id="bar-neto" style="background:#1D9E75"></div>
-    </div>
-    <div class="bar-legend">
-      <div class="leg-item"><div class="leg-dot" style="background:#E24B4A"></div>Gastos operativos</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#BA7517"></div>Hipoteca</div>
-      <div class="leg-item"><div class="leg-dot" style="background:#1D9E75"></div>Beneficio neto</div>
-    </div>
-  </div>
-
-  <div class="insight" id="insight-box">
-    Ajusta los datos para ver el análisis de tu inversión.
-  </div>
-
-  <div class="cta-card">
-    <h3>¿Quieres un análisis personalizado?</h3>
-    <p>Nuestro equipo puede estudiar tu propiedad y proponerte una estrategia de inversión o gestión en Barcelona.</p>
-    <a class="cta-btn" href="https://maybahaztuhogar.wixsite.com/mayba-haz-tu-hogar/contacto">Hablar con un asesor</a>
-  </div>
-
-  <footer>
-    <p>© 2025 Mayba · Gestión Inmobiliaria 360 en Barcelona · <a href="https://mayba.es" style="color:var(--verde);text-decoration:none">mayba.es</a></p>
-    <p style="margin-top:6px;font-size:11px;color:#bbb">Los resultados son orientativos. Se incluye una tasa de vacancia del 5% y fondo de mantenimiento del 5% sobre ingresos.</p>
-  </footer>
-
-</div>
-
-<script>
-  const sliders = ['precio','gastos','reforma','renta','parking','ibi','comunidad','seguro','financ','tipo','plazo'];
-  const numbers = ['otrosgastos','otroing','otrogasto'];
-
-  function fmt(id, v) {
-    if (id === 'tipo') return v.toFixed(1).replace('.', ',') + ' %';
-    if (id === 'plazo') return Math.round(v) + ' años';
-    if (id === 'financ') return Math.round(v) + '%';
-    return Math.round(v).toLocaleString('es-ES') + ' €';
-  }
-  const fmtE = v => Math.round(v).toLocaleString('es-ES') + ' €';
-  const fmtP = v => v.toFixed(1) + '%';
-
-  function calc() {
-    const g = {};
-    sliders.forEach(id => { g[id] = parseFloat(document.getElementById(id).value) || 0; });
-    numbers.forEach(id => { g[id] = parseFloat(document.getElementById(id).value) || 0; });
-
-    const totalCompra = g.precio + g.gastos + g.reforma + g.otrosgastos;
-    const ingresosAnual = (g.renta + g.parking + g.otroing) * 12;
-    const gastosAnual = g.ibi + g.comunidad * 12 + g.seguro + g.otrogasto * 12;
-    const vacancia = ingresosAnual * 0.05;
-    const mant = ingresosAnual * 0.05;
-    const gastosTotal = gastosAnual + vacancia + mant;
-
-    const bruta = (ingresosAnual / totalCompra) * 100;
-    const neta = ((ingresosAnual - gastosTotal) / totalCompra) * 100;
-
-    let cuotaMensual = 0;
-    let capitalPropio = totalCompra;
-    if (g.financ > 0) {
-      const principal = totalCompra * (g.financ / 100);
-      capitalPropio = totalCompra - principal;
-      const r = (g.tipo / 100) / 12;
-      const n = g.plazo * 12;
-      cuotaMensual = r > 0 ? principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : principal / n;
-    }
-
-    const cashflow = (g.renta + g.parking + g.otroing) - (gastosTotal / 12) - cuotaMensual;
-    const benefNeto = ingresosAnual - gastosTotal - cuotaMensual * 12;
-    const roce = capitalPropio > 0 ? (benefNeto / capitalPropio) * 100 : 0;
-
-    document.getElementById('v-bruta').textContent = fmtP(bruta);
-    document.getElementById('v-neta').textContent = fmtP(neta);
-    document.getElementById('v-cash').textContent = fmtE(cashflow) + '/mes';
-    document.getElementById('v-roce').textContent = fmtP(roce);
-
-    ['m-bruta', 'm-neta', 'm-roce'].forEach(id => {
-      const num = parseFloat(document.getElementById(id.replace('m-', 'v-')).textContent);
-      document.getElementById(id).className = 'metric ' + (num >= 6 ? 'good' : num >= 3 ? 'warn' : 'bad');
-    });
-    document.getElementById('m-cash').className = 'metric ' + (cashflow > 0 ? 'good' : cashflow > -200 ? 'warn' : 'bad');
-
-    const total = ingresosAnual || 1;
-    const pG = Math.max(0, Math.min(100, (gastosTotal / total) * 100));
-    const pH = Math.max(0, Math.min(100 - pG, (cuotaMensual * 12 / total) * 100));
-    const pN = Math.max(0, 100 - pG - pH);
-    document.getElementById('bar-gastos').style.width = pG.toFixed(1) + '%';
-    document.getElementById('bar-hipo').style.width = pH.toFixed(1) + '%';
-    document.getElementById('bar-neto').style.width = pN.toFixed(1) + '%';
-
-    const box = document.getElementById('insight-box');
-    let tip = '', cls = 'insight';
-    if (bruta < 4) { tip = 'Rentabilidad bruta baja. Revisa el precio de compra o el alquiler esperado para el mercado de Barcelona.'; cls += ' bad'; }
-    else if (neta < 3) { tip = 'Los gastos reducen mucho el margen. Considera negociar el precio de compra o revisar los costes fijos.'; cls += ' warn'; }
-    else if (cashflow < 0) { tip = 'Cashflow negativo: necesitarías aportar dinero cada mes. Revisa la financiación o ajusta el alquiler esperado.'; cls += ' bad'; }
-    else if (neta >= 5 && cashflow > 200) { tip = 'Buena inversión: rentabilidad neta sólida y cashflow positivo. Rango habitual en activos bien gestionados en Barcelona.'; }
-    else { tip = 'Inversión equilibrada. La rentabilidad neta está dentro del rango de mercado en Barcelona (4–6% neto).'; }
-    box.textContent = tip;
-    box.className = cls;
-  }
-
-  sliders.forEach(id => {
-    const el = document.getElementById(id);
-    el.addEventListener('input', () => {
-      document.getElementById('v-' + id).textContent = fmt(id, parseFloat(el.value));
-      calc();
-    });
-  });
-  numbers.forEach(id => { document.getElementById(id).addEventListener('input', calc); });
-  calc();
-</script>
-</body>
-</html>
+mayba.
+← Volver a la web
+Calculadora de rentabilidad del alquiler
+Analiza tu inversión inmobiliaria en Barcelona: rentabilidad bruta, neta, cashflow y ROCE con o sin hipoteca.
+
+Rentabilidad bruta
+5.2%
+Rentabilidad neta
+4.0%
+Cashflow mensual
+925 €/mes
+ROCE
+4.0%
+Datos de la compra
+Precio de compra
+
+250.000 €
+Notaría + ITP / IVA
+
+25.000 €
+Reforma / mobiliario
+
+0 €
+Otros gastos compra
+broker, cláusulas, gestoría…
+0
+importe fijo
+Ingresos del alquiler
+Alquiler mensual
+
+1.200 €
+Plaza parking / trastero
+
+0 €
+Otros ingresos mensuales
+señales, servicios adicionales…
+0
+importe fijo
+Gastos del alquiler
+IBI anual
+
+600 €
+Comunidad mensual
+
+80 €
+Seguro anual
+
+300 €
+Otros gastos mensuales
+gestoría, suministros, etc.
+0
+importe fijo
+Hipoteca (opcional)
+Financiación
+
+0%
+Tipo de interés
+
+3,0%
+Plazo
+
+25 años
+Distribución de los ingresos anuales
+Gastos operativos
+Hipoteca
+Beneficio neto
+Inversión equilibrada. La rentabilidad neta está dentro del rango de mercado en Barcelona (4–6% neto).
+¿Quieres un análisis personalizado?
+Nuestro equipo puede estudiar tu propiedad y proponerte una estrategia de inversión o gestión en Barcelona.
+
+Hablar con un asesor
+© 2025 Mayba · Gestión Inmobiliaria 360 en Barcelona · mayba.es
+
+Los resultados son orientativos. Se incluye una tasa de vacancia del 5% y fondo de mantenimiento del 5% sobre ingresos.
