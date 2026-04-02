@@ -610,10 +610,12 @@
     return Math.round(num) + c.suffix;
   }
 
-  // ── Parsear texto del input → número ─────────────────────────────────────
+  // ── Almacén de valores exactos (introducidos manualmente) ────────────────
+  const exactValues = {};
+
+  // ── Parsear texto del input → número (SIN redondear al step) ─────────────
   function parseVal(id, txt) {
     const c = SLIDER_CONFIG[id];
-    // Quitar sufijo y separadores de miles, normalizar coma decimal
     let clean = txt
       .replace(c.suffix, '')
       .replace(/\./g, '')    // separador de miles (punto en es-ES)
@@ -621,10 +623,8 @@
       .trim();
     let num = parseFloat(clean);
     if (isNaN(num)) return null;
-    // Clamp al rango del slider
+    // Solo clamp al rango, sin redondear al step
     num = Math.max(c.min, Math.min(c.max, num));
-    // Redondear al step
-    num = Math.round(num / c.step) * c.step;
     return num;
   }
 
@@ -636,8 +636,10 @@
     vinput.value = formatVal(id, num);
   }
 
-  // ── Leer valores actuales ─────────────────────────────────────────────────
-  function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
+  // ── Leer valores: usa el valor exacto si existe, si no el del slider ──────
+  function getVal(id) {
+    return (exactValues[id] !== undefined) ? exactValues[id] : (parseFloat(document.getElementById(id).value) || 0);
+  }
   function getFixed(id) { return parseFloat(document.getElementById(id).value) || 0; }
 
   // ── Calcular y renderizar ─────────────────────────────────────────────────
@@ -727,38 +729,41 @@
     const slider = document.getElementById(id);
     const vinput = document.getElementById('vi-' + id);
 
-    // Slider mueve → actualiza input visual
+    // Slider mueve → borra valor exacto y actualiza input visual
     slider.addEventListener('input', () => {
+      delete exactValues[id];
       vinput.value = formatVal(id, parseFloat(slider.value));
       calc();
     });
 
-    // Input visual: al hacer foco, mostrar solo número (sin formato)
+    // Input visual: al hacer foco, mostrar valor limpio (sin formato)
     vinput.addEventListener('focus', () => {
-      const raw = parseFloat(slider.value);
       const c = SLIDER_CONFIG[id];
-      vinput.value = c.dec > 0 ? raw.toFixed(c.dec).replace('.', ',') : String(Math.round(raw));
+      const current = exactValues[id] !== undefined ? exactValues[id] : parseFloat(slider.value);
+      vinput.value = c.dec > 0 ? current.toFixed(c.dec).replace('.', ',') : String(Math.round(current));
       vinput.select();
     });
 
-    // Input visual: al perder foco, parsear y aplicar
+    // Input visual: al perder foco, guardar valor exacto sin redondear al step
     vinput.addEventListener('blur', () => {
       const parsed = parseVal(id, vinput.value);
       if (parsed !== null) {
+        exactValues[id] = parsed;
         slider.value = parsed;
         vinput.value = formatVal(id, parsed);
         calc();
       } else {
-        // Valor inválido → restaurar del slider
-        vinput.value = formatVal(id, parseFloat(slider.value));
+        const current = exactValues[id] !== undefined ? exactValues[id] : parseFloat(slider.value);
+        vinput.value = formatVal(id, current);
       }
     });
 
-    // Input visual: Enter aplica
+    // Enter aplica, Escape cancela
     vinput.addEventListener('keydown', e => {
       if (e.key === 'Enter') { vinput.blur(); }
       if (e.key === 'Escape') {
-        vinput.value = formatVal(id, parseFloat(slider.value));
+        const current = exactValues[id] !== undefined ? exactValues[id] : parseFloat(slider.value);
+        vinput.value = formatVal(id, current);
         vinput.blur();
       }
     });
